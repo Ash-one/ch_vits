@@ -43,12 +43,12 @@ _ = utils.load_checkpoint("./logs/baker_base/G_270000.pth", net_g, None)
 
 stn_tst = get_text("Happiness is a way station between too much and too little!", hps)
 
-print(datetime.datetime.now())
+
 with torch.no_grad():
     x_tst = stn_tst.cuda().unsqueeze(0)
     x_tst_lengths = torch.LongTensor([stn_tst.size(0)]).cuda()
     audio = net_g.infer(x_tst, x_tst_lengths, noise_scale=.667, noise_scale_w=0.8, length_scale=1)[0][0,0].data.cpu().float().numpy()
-print(datetime.datetime.now())
+
 
 save_wav(audio, 'baker_tts.wav', hps.data.sampling_rate)
 

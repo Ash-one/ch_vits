@@ -42,9 +42,13 @@ def main():
   """Assume Single Node Multi GPUs Training Only"""
   assert torch.cuda.is_available(), "CPU training is not allowed."
 
-  n_gpus = torch.cuda.device_count()
+  #n_gpus = torch.cuda.device_count()
+  n_gpus = 1
+
   os.environ['MASTER_ADDR'] = 'localhost'
   os.environ['MASTER_PORT'] = '80000'
+  os.environ['CUDA_VISIBLE_DEVICES'] = ','.join(map(str,[0]))
+
 
   hps = utils.get_hparams()
   mp.spawn(run, nprocs=n_gpus, args=(n_gpus, hps,))
@@ -74,11 +78,11 @@ def run(rank, n_gpus, hps):
   # It is possible that dataloader's workers are out of shared memory. Please try to raise your shared memory limit.
   # num_workers=8 -> num_workers=4
   collate_fn = TextAudioCollate()
-  train_loader = DataLoader(train_dataset, num_workers=2, shuffle=False, pin_memory=True,
-      collate_fn=collate_fn, batch_sampler=train_sampler)
+  train_loader = DataLoader(train_dataset, num_workers=4, shuffle=False, pin_memory=True,
+      collate_fn=collate_fn, batch_sampler=train_sampler, pin_memory=True)
   if rank == 0:
     eval_dataset = TextAudioLoader(hps.data.validation_files, hps.data)
-    eval_loader = DataLoader(eval_dataset, num_workers=2, shuffle=False,
+    eval_loader = DataLoader(eval_dataset, num_workers=4, shuffle=False,
         batch_size=hps.train.batch_size, pin_memory=True,
         drop_last=False, collate_fn=collate_fn)
 
