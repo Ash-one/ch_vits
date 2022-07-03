@@ -13,7 +13,7 @@ This project is only for academic purposes
 
 ## 基于VITS 实现 48KHZ的 baker TTS 的流程
 ### 预先准备  
->`apt-get install espeak`  
+`apt-get install espeak`  
 `pip install -r requirements.txt`  
 `cd monotonic_align`  
 `python setup.py build_ext --inplace`
@@ -26,15 +26,18 @@ This project is only for academic purposes
 
 >002762	我是#2善良#1活泼#3、好奇心#1旺盛的#2B型血#4。
 	wo3 shi4 shan4 liang2 huo2 po1 hao4 qi2 xin1 wang4 sheng4 de5 bi4 xing2 xie3
+#### 运行命令进行预处理
+`python preprocess.py`
+
 ### 将标贝音频拷贝到./baker_waves/，启动训练
 使用的label为全#0停顿、切分声韵母、无儿化音版  
->`python train.py -c configs/baker_base.json -m baker_base`
+`python train.py -c configs/baker_base.json -m baker_base`
 
 一张RTX3090 24G，训练40小时以上
 
 ### 推理
 修改为对应的模型，进行推理
->`python inference.py`
+`python inference.py`
 	
 
 
@@ -57,6 +60,6 @@ error: could not create 'monotonic_align/core.cpython-38-x86_64-linux-gnu.so': N
 
 在`monotonic_align`文件夹下再创建一个`monotonic_align`文件夹
 
-4. 本来已经在音素后面强插边界了，VITS又强插边界了，具体是配置参数：`"add_blank": true`
+4. 停顿不正常。本来已经在音素后面强插边界了，VITS又强插边界了，具体是配置参数：`"add_blank": true`
 
-5. 可能影响，随机时长预测，具体配置参数：`use_sdp=True`
+5. 可能影响停顿的原因：随机时长预测，具体配置参数：`use_sdp=True`

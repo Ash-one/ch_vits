@@ -79,7 +79,7 @@ def run(rank, n_gpus, hps):
   # num_workers=8 -> num_workers=4
   collate_fn = TextAudioCollate()
   train_loader = DataLoader(train_dataset, num_workers=4, shuffle=False, pin_memory=True,
-      collate_fn=collate_fn, batch_sampler=train_sampler, pin_memory=True)
+      collate_fn=collate_fn, batch_sampler=train_sampler)
   if rank == 0:
     eval_dataset = TextAudioLoader(hps.data.validation_files, hps.data)
     eval_loader = DataLoader(eval_dataset, num_workers=4, shuffle=False,
