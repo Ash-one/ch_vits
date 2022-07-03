@@ -16,7 +16,7 @@ net_g = SynthesizerTrn(
     **hps.model)
 _ = net_g.eval()
 
-_ = utils.load_checkpoint("./logs/G_56000.pth", net_g, None)
+_ = utils.load_checkpoint("./logs/G_60000.pth", net_g, None)
 
 if __name__ == "__main__":
     message = '是谁在撩动心弦'
