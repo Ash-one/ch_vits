@@ -1,6 +1,9 @@
 # VITS实现的中文TTS
-this is a fork of https://github.com/lutianxiong/vits_chinese  
-the original version of VITS : https://github.com/jaywalnut310/vits		
+本项目仅为学习使用  
+This project is only for academic purposes
+
+This is a fork of https://github.com/lutianxiong/vits_chinese  
+The original version of VITS : https://github.com/jaywalnut310/vits		
 
 VITS: Conditional Variational Autoencoder with Adversarial Learning for End-to-End Text-to-Speech		
 
@@ -8,8 +11,6 @@ Espnet连接：github.com/espnet/espnet/tree/master/espnet2/gan_tts/vits
 
 coqui-ai/TTS连接：github.com/coqui-ai/TTS/tree/main/recipes/ljspeech/vits_tts
 
-本项目仅为学习使用  
-This project is only for academic purposes
 
 ## 基于VITS 实现 48KHZ的 baker TTS 的流程
 ### 预先准备  
@@ -30,7 +31,7 @@ This project is only for academic purposes
 `python preprocess.py`
 
 ### 将标贝音频拷贝到./baker_waves/，启动训练
-使用的label为全#0停顿、切分声韵母、无儿化音版  
+使用的label为五级停顿、切分声韵母、无儿化音版  
 `python train.py -c configs/baker_base.json -m baker_base`
 
 一张RTX3090 24G，训练40小时以上
@@ -60,6 +61,7 @@ error: could not create 'monotonic_align/core.cpython-38-x86_64-linux-gnu.so': N
 
 在`monotonic_align`文件夹下再创建一个`monotonic_align`文件夹
 
-4. 停顿不正常。本来已经在音素后面强插边界了，VITS又强插边界了，具体是配置参数：`"add_blank": true`
+4. 停顿不正常。本来已经在音素后面强插边界了，VITS又在`add_blank`中强插边界，具体是配置参数：`"add_blank": false`
 
 5. 可能影响停顿的原因：随机时长预测，具体配置参数：`use_sdp=True`
+6. 合成音频出现电音。可适当提高推理时的噪音参数，能显著提高合成质量`noise_scale=0.667, noise_scale_w=0.8`

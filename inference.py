@@ -16,10 +16,10 @@ net_g = SynthesizerTrn(
     **hps.model)
 _ = net_g.eval()
 
-_ = utils.load_checkpoint("./logs/G_60000.pth", net_g, None)
+_ = utils.load_checkpoint("./logs/G_74000.pth", net_g, None)
 
 if __name__ == "__main__":
-    message = '是谁在撩动心弦'
+    message = '《飘》是美国著名女作家玛格丽特.米歇尔创作的一部具有浪漫主义色彩、反映美国南北战争的小说'
 
     phonemes = chinese_to_phonemes(message)
     #phonemes = phonemes.replace("^ ", "")
@@ -29,6 +29,6 @@ if __name__ == "__main__":
     with torch.no_grad():
         x_tst = input_ids.unsqueeze(0)
         x_tst_lengths = torch.LongTensor([input_ids.size(0)])
-        audio = net_g.infer(x_tst, x_tst_lengths, noise_scale=0, noise_scale_w=0, length_scale=1)[0][0,0].data.cpu().float().numpy()
+        audio = net_g.infer(x_tst, x_tst_lengths, noise_scale=0.667, noise_scale_w=0.8, length_scale=1)[0][0,0].data.cpu().float().numpy()
     save_wav(audio, f"{message}.wav", hps.data.sampling_rate)
     print('推理结束，文件已保存！')

@@ -446,6 +446,7 @@ def chinese_to_phonemes(text):
     for subtext in text.split("，"):
         m = G2pM()
         pinyins = m(subtext,tone=True) # 返回由字符串拼音组成的列表
+        print('预测拼音为：',pinyins)
         new_pinyin = []
         for x in pinyins:
             x = "".join(x)
