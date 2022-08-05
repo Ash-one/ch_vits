@@ -16,10 +16,10 @@ net_g = SynthesizerTrn(
     **hps.model)
 _ = net_g.eval()
 
-_ = utils.load_checkpoint("./logs/G_74000.pth", net_g, None)
+_ = utils.load_checkpoint("./logs/ch_74000.pth", net_g, None)
 
 if __name__ == "__main__":
-    message = '《飘》是美国著名女作家玛格丽特.米歇尔创作的一部具有浪漫主义色彩、反映美国南北战争的小说'
+    message = '吃葡萄不吐葡萄皮，不吃葡萄倒吐葡萄皮'
 
     phonemes = chinese_to_phonemes(message)
     #phonemes = phonemes.replace("^ ", "")

@@ -238,6 +238,7 @@ class PosteriorEncoder(nn.Module):
     stats = self.proj(x) * x_mask
     m, logs = torch.split(stats, self.out_channels, dim=1)
     z = (m + torch.randn_like(m) * torch.exp(logs)) * x_mask
+    # z是从后验分布中采样出的隐变量，m和logs分别是从后验分布中采样出的均值和对数标准差
     return z, m, logs, x_mask
 
 
@@ -435,7 +436,7 @@ class SynthesizerTrn(nn.Module):
     self.gin_channels = gin_channels
 
     self.use_sdp = use_sdp
-
+    # 得到文本的先验编码器
     self.enc_p = TextEncoder(n_vocab,
         inter_channels,
         hidden_channels,
@@ -444,11 +445,15 @@ class SynthesizerTrn(nn.Module):
         n_layers,
         kernel_size,
         p_dropout)
+    # 波形生成器/解码器
     self.dec = Generator(inter_channels, resblock, resblock_kernel_sizes, resblock_dilation_sizes, upsample_rates, upsample_initial_channel, upsample_kernel_sizes, gin_channels=gin_channels)
+    # 后验编码器
     self.enc_q = PosteriorEncoder(spec_channels, inter_channels, hidden_channels, 5, 1, 16, gin_channels=gin_channels)
+    # 提高先验分布复杂度的flow模型
     self.flow = ResidualCouplingBlock(inter_channels, hidden_channels, 5, 1, 4, gin_channels=gin_channels)
 
     if use_sdp:
+      # 随机时长预测器
       self.dp = StochasticDurationPredictor(hidden_channels, 192, 3, 0.5, 4, gin_channels=gin_channels)
     else:
       self.dp = DurationPredictor(hidden_channels, 256, 3, 0.5, gin_channels=gin_channels)
@@ -457,20 +462,20 @@ class SynthesizerTrn(nn.Module):
       self.emb_g = nn.Embedding(n_speakers, gin_channels)
 
   def forward(self, x, x_lengths, y, y_lengths, sid=None):
-
-    x, m_p, logs_p, x_mask = self.enc_p(x, x_lengths)
+    x, m_p, logs_p, x_mask = self.enc_p(x, x_lengths) # m指均值，logs指对数标准差。这一步获得的是先验分布中的公式4中的关于f(z)的正态分布，公式中需要再经过一个flow才能变成公式里的z
     if self.n_speakers > 0:
       g = self.emb_g(sid).unsqueeze(-1) # [b, h, 1]
     else:
       g = None
 
     z, m_q, logs_q, y_mask = self.enc_q(y, y_lengths, g=g)
-    z_p = self.flow(z, y_mask, g=g)
+    z_p = self.flow(z, y_mask, g=g) # 这里涉及论文中没有的公式转化（为什么将后验得到的z输入进flow），是将后验编码器得到的z输入进flow转换成f(z)最后送进kl_loss做计算，这里的z_p不再是z而是flow
 
+    # 开始单调对齐搜索，使用动态规划----------------------------------------
     with torch.no_grad():
       # negative cross-entropy
       s_p_sq_r = torch.exp(-2 * logs_p) # [b, d, t]
-      neg_cent1 = torch.sum(-0.5 * math.log(2 * math.pi) - logs_p, [1], keepdim=True) # [b, 1, t_s]
+      neg_cent1 = torch.sum(-0.5 * math.log(2 * math.pi) - logs_p, [1], keepdim=True) # [b, 1, t_s] t_s是频谱的长度，t_t是文本的长度
       neg_cent2 = torch.matmul(-0.5 * (z_p ** 2).transpose(1, 2), s_p_sq_r) # [b, t_t, d] x [b, d, t_s] = [b, t_t, t_s]
       neg_cent3 = torch.matmul(z_p.transpose(1, 2), (m_p * s_p_sq_r)) # [b, t_t, d] x [b, d, t_s] = [b, t_t, t_s]
       neg_cent4 = torch.sum(-0.5 * (m_p ** 2) * s_p_sq_r, [1], keepdim=True) # [b, 1, t_s]
@@ -478,21 +483,26 @@ class SynthesizerTrn(nn.Module):
 
       attn_mask = torch.unsqueeze(x_mask, 2) * torch.unsqueeze(y_mask, -1)
       attn = monotonic_align.maximum_path(neg_cent, attn_mask.squeeze(1)).unsqueeze(1).detach()
+      # shape of attn: [b,1,t_s,t_t] 
 
-    w = attn.sum(2)
+    w = attn.sum(2)   # [b, 1, t_t]表示每个文本信息对应几个频谱信息
+    # end-------------------------------------------------------------
     if self.use_sdp:
-      l_length = self.dp(x, x_mask, w, g=g)
+      l_length = self.dp(x, x_mask, w, g=g)     # l_length表示loss_length,是对数似然
       l_length = l_length / torch.sum(x_mask)
     else:
       logw_ = torch.log(w + 1e-6) * x_mask
       logw = self.dp(x, x_mask, g=g)
       l_length = torch.sum((logw - logw_)**2, [1,2]) / torch.sum(x_mask) # for averaging 
 
-    # expand prior
-    m_p = torch.matmul(attn.squeeze(1), m_p.transpose(1, 2)).transpose(1, 2)
-    logs_p = torch.matmul(attn.squeeze(1), logs_p.transpose(1, 2)).transpose(1, 2)
+    # expand prior 先验得到的m_p维度需要修整和后验的m_q相同
+    # shape of attn: [b,1,t_s,t_t] 
+    # shape of m_p:  [b,feat_dim,t_t]
+    # shape of logs_p:[b,feat_dim,t_t]
+    m_p = torch.matmul(attn.squeeze(1), m_p.transpose(1, 2)).transpose(1, 2) # reshape [b,feat_dim,t_s]
+    logs_p = torch.matmul(attn.squeeze(1), logs_p.transpose(1, 2)).transpose(1, 2) # reshape [b,feat_dim,t_s]
 
-    z_slice, ids_slice = commons.rand_slice_segments(z, y_lengths, self.segment_size)
+    z_slice, ids_slice = commons.rand_slice_segments(z, y_lengths, self.segment_size) # 将频谱随机分段后输入解码器进行上采样，防止整段过长导致爆内存
     o = self.dec(z_slice, g=g)
     return o, l_length, attn, ids_slice, x_mask, y_mask, (z, z_p, m_p, logs_p, m_q, logs_q)
 

@@ -48,6 +48,9 @@ def kl_loss(z_p, logs_q, m_p, logs_p, z_mask):
   z_p, logs_q: [b, h, t_t]
   m_p, logs_p: [b, h, t_t]
   """
+  '''为什么这里的kl_loss不是我们常见的两个高斯分布的差值？
+  因为我们的先验分布并不是一个高斯分布，而是经过flow的一个复杂分布，无法得到解析解，只能求解期望
+  '''
   z_p = z_p.float()
   logs_q = logs_q.float()
   m_p = m_p.float()
