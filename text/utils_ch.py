@@ -1,10 +1,8 @@
-import numpy as np
-from g2pM import G2pM
-
-from scipy.io import wavfile
-
-import torch
 import commons
+import numpy as np
+import torch
+from g2pM import G2pM
+from scipy.io import wavfile
 
 from text import cleaned_text_to_sequence
 
@@ -429,8 +427,13 @@ pinyin_dict = {
 }
 
 
+_3pause = '，。；？！'
 
-def get_phoneme4pinyin(pinyins):
+def get_phoneme4pinyin(pinyins:list):
+    '''
+    返回一个列表
+    将一句中的每一个拼音转换为对应的声韵母并加上一个0级停顿，最后会加上sil
+    '''
     result = []
     for pinyin in pinyins:
         if pinyin[:-1] in pinyin_dict:
@@ -438,23 +441,42 @@ def get_phoneme4pinyin(pinyins):
             a = pinyin[:-1]
             a1, a2 = pinyin_dict[a]
             result += [a1, a2 + tone, "#0"]
-    result.append("sil")
+        else:
+            # 处理不在pydict内的元素，可能是标点，将标点转为三级停顿。
+            if pinyin in _3pause:
+                result += ['#3']
+            # TODO: 添加12级停顿
     return result
 
-def chinese_to_phonemes(text):
+def remove_reduplicate_pause(phs:list):
+    '''
+    去除连续的#停顿，留下最长的停顿.
+    比如#0#3连续出现，只留下#3
+    '''
+    i = 0
+    or_len = len(phs)
+    while i < len(phs)-1:
+        if phs[i][0]==phs[i+1][0]=='#':
+            if int(phs[i][1]) <= int(phs[i+1][1]):
+                phs = phs[:i]+phs[i+1:]
+            elif int(phs[i][1]) > int(phs[i+1][1]):
+                phs = phs[:i+1]+phs[i+2:]
+        i+=1
+    print(f'去掉{or_len-len(phs)}个重复停顿')
+    return phs
+
+def chinese_to_phonemes(text:str):
+    '''
+    返回一个字符串
+    用于推理部分，将输入的文本转换成音素
+    '''
     phonemes = ["sil"]
-    for subtext in text.split("，"):
-        m = G2pM()
-        pinyins = m(subtext,tone=True) # 返回由字符串拼音组成的列表
-        print('预测拼音为：',pinyins)
-        new_pinyin = []
-        for x in pinyins:
-            x = "".join(x)
-            new_pinyin.append(x)
-        sub_phonemes = get_phoneme4pinyin(new_pinyin)
-        phonemes.extend(sub_phonemes)
-    phonemes.append("eos")
-    #print(f"phoneme seq: {phonemes}")
+
+    m = G2pM()
+    pinyins = m(text,tone=True) # 返回由字符串拼音组成的列表
+    phonemes += get_phoneme4pinyin(pinyins)
+    phonemes += ['sil','eos']
+    phonemes = remove_reduplicate_pause(phs=phonemes)
     return " ".join(phonemes)
 
 
