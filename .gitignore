@@ -6,3 +6,4 @@ text/__pycache__/*
 filelists/origin_baker_label.txt
 test_text_modules.ipynb
 infer_local.py
+wav/*
