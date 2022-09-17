@@ -50,7 +50,7 @@ def add_label(l1,l2):
 
     return ' '.join(final_list)
 
-'''将baker的标注进行处理'''
+'''将baker的标注进行处理，放入all_list中'''
 all_list=list()
 with open(old_label_path,'r') as f:
     lines = f.readlines()
@@ -64,7 +64,7 @@ with open(old_label_path,'r') as f:
         # print(one_piece)
         all_list.append(one_piece)
 
-
+'''我们现在不处理儿化音和中英混合情况，所以要处理all_list中存在的特殊字符，返回all_list_without_erhua列表'''
 all_list_without_erhua = list()
 for line in all_list:
     line_list = line.strip().split('|')

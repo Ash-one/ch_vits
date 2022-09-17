@@ -3,6 +3,9 @@ monotonic_align/*
 baker_waves/*
 __pycache__/*
 text/__pycache__/*
+test_text_modules.ipynb
+infer_local.py
+wav/*
 filelists/*
 BANJIANG/*
 wav/*

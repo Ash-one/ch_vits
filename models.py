@@ -196,6 +196,7 @@ class ResidualCouplingBlock(nn.Module):
 
     self.flows = nn.ModuleList()
     for i in range(n_flows):
+      # 一层couplinglayer接一层flip做翻转，保证每次所有元素都能进行仿射变换。 mean_only=True代表只进行平移变化，没有缩放，是体积不变的flow
       self.flows.append(modules.ResidualCouplingLayer(channels, hidden_channels, kernel_size, dilation_rate, n_layers, gin_channels=gin_channels, mean_only=True))
       self.flows.append(modules.Flip())
 
@@ -210,6 +211,7 @@ class ResidualCouplingBlock(nn.Module):
 
 
 class PosteriorEncoder(nn.Module):
+  '''后验编码器，根据输入的线性频谱输出隐变量z'''
   def __init__(self,
       in_channels,
       out_channels,

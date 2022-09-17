@@ -109,6 +109,7 @@ class DDSConv(nn.Module):
 
 
 class WN(torch.nn.Module):
+  '''WaveNet中的膨胀因果卷积模块'''
   def __init__(self, hidden_channels, kernel_size, dilation_rate, n_layers, gin_channels=0, p_dropout=0):
     super(WN, self).__init__()
     assert(kernel_size % 2 == 1)
@@ -326,6 +327,7 @@ class ResidualCouplingLayer(nn.Module):
     h = self.pre(x0) * x_mask
     h = self.enc(h, x_mask, g=g)
     stats = self.post(h) * x_mask
+    # 仿射变换类似于ax+b，在这里m是b，logs是a
     if not self.mean_only:
       m, logs = torch.split(stats, [self.half_channels]*2, 1)
     else:
