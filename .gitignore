@@ -10,3 +10,4 @@ filelists/*
 BANJIANG/*
 wav/*
 configs/banjiang_base.json
+prepare_baker.ipynb
