@@ -1,14 +1,6 @@
-_pause = ['sil','eos',"sp","#0", "#1", "#2", "#3",'#4']
-# sil表示一段静音，通常加在句子的前后
-# eos表示结束符
-# 0表示每个音素后的极短停顿，使用0级停顿时就不能使用VITS自带的add_blank加停顿
-# 1表示每个韵律词后的短停顿
-# 2表示每个韵律短语后的停顿
-# 3表示每个语调短语后的停顿，包括逗号顿号
-# 4表示句子的结束
+_pause = ['sil', 'sp1']
 
 _initials = [
-    "^",
     "b",
     "c",
     "ch",
@@ -32,47 +24,22 @@ _initials = [
     "zh",
 ]
 
-_tones = ["1", "2", "3", "4", "5"]
+_finals = ['a1', 'a2', 'a3', 'a4', 'a5',
+           'ai1', 'ai2', 'ai3', 'ai4', 'ai5',
+           'air2', 'air4', 'an1', 'an2', 'an3', 'an4', 'an5',
+           'ang1', 'ang2', 'ang3', 'ang4', 'ang5', 'anr1', 'anr3', 'anr4',
+           'ao1', 'ao2', 'ao3', 'ao4', 'ao5', 'aor3', 'aor4', 'ar2', 'ar3', 'ar4',
+           'e1', 'e2', 'e3', 'e4', 'e5', 'ei1', 'ei2', 'ei3', 'ei4', 'ei5',
+           'en1', 'en2', 'en3', 'en4', 'en5', 'eng1', 'eng2', 'eng3', 'eng4', 'eng5',
+           'enr1', 'enr2', 'enr4', 'enr5', 'er2', 'er3', 'er4', 'er5',
+           'i1', 'i2', 'i3', 'i4', 'i5', 'ia1', 'ia2', 'ia3', 'ia4', 'ia5',
+           'ian1', 'ian2', 'ian3', 'ian4', 'ian5', 'iang1', 'iang2', 'iang3', 'iang4', 'iang5',
+           'iangr4', 'ianr1', 'ianr2', 'ianr3', 'iao1', 'iao2', 'iao3', 'iao4', 'iao5',
+           'iar1', 'iar3', 'ie1', 'ie2', 'ie3', 'ie4', 'ie5',
+           'ii1', 'ii2', 'ii3', 'ii4', 'ii5', 'iii1', 'iii2', 'iii3', 'iii4', 'iii5', 'iiir4',
+           'in1', 'in2', 'in3', 'in4', 'in5', 'ing1', 'ing2', 'ing3', 'ing4', 'ing5',
+           'ingr2', 'ingr3', 'inr4', 'io5', 'iong1', 'iong2', 'iong3', 'iong4', 'iong5',
+           'iou1', 'iou2', 'iou3', 'iou4', 'iou5', 'iour1', 'ir1', 'ir2', 'ir3', 'ir4', 'ir5',
+           'o1', 'o2', 'o3', 'o4', 'o5', 'ong1', 'ong2', 'ong3', 'ong4', 'ong5', 'ongr4', 'ou1', 'ou2', 'ou3', 'ou4', 'ou5', 'our2', 'u1', 'u2', 'u3', 'u4', 'u5', 'ua1', 'ua2', 'ua3', 'ua4', 'ua5', 'uai1', 'uai2', 'uai3', 'uai4', 'uai5', 'uair4', 'uan1', 'uan2', 'uan3', 'uan4', 'uan5', 'uang1', 'uang2', 'uang3', 'uang4', 'uang5', 'uanr1', 'uanr2', 'uei1', 'uei2', 'uei3', 'uei4', 'uei5', 'ueir1', 'ueir3', 'ueir4', 'uen1', 'uen2', 'uen3', 'uen4', 'uen5', 'ueng1', 'ueng2', 'ueng3', 'ueng4', 'uenr3', 'uenr4', 'uo1', 'uo2', 'uo3', 'uo4', 'uo5', 'uor2', 'uor3', 'ur3', 'ur4', 'v1', 'v2', 'v3', 'v4', 'v5', 'van1', 'van2', 'van3', 'van4', 'van5', 'vanr4', 've1', 've2', 've3', 've4', 've5', 'vn1', 'vn2', 'vn3', 'vn4', 'vn5']
 
-_finals = [
-    "a",
-    "ai",
-    "an",
-    "ang",
-    "ao",
-    "e",
-    "ei",
-    "en",
-    "eng",
-    "er",
-    "i",
-    "ia",
-    "ian",
-    "iang",
-    "iao",
-    "ie",
-    "ii",
-    "iii",
-    "in",
-    "ing",
-    "iong",
-    "iou",
-    "o",
-    "ong",
-    "ou",
-    "u",
-    "ua",
-    "uai",
-    "uan",
-    "uang",
-    "uei",
-    "uen",
-    "ueng",
-    "uo",
-    "v",
-    "van",
-    "ve",
-    "vn",
-]
-
-symbols = _pause + _initials + [i + j for i in _finals for j in _tones]
+symbols = _pause + _initials + _finals
