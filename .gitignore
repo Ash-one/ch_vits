@@ -3,4 +3,7 @@ monotonic_align/*
 baker_waves/*
 __pycache__/*
 text/__pycache__/*
-filelists/origin_baker_label.txt
+filelists/*
+BANJIANG/*
+wav/*
+configs/banjiang_base.json
